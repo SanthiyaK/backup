@@ -9,16 +9,16 @@
     - ./defaults/main.yml
   tasks:
 
-    - name: Install the MySQL repo.
-      get_url:
-        url: https://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
-        dest: /tmp
+   # - name: Install the MySQL repo.
+   #  get_url:
+   #    url: https://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
+    #    dest: /tmp
 
-    - name: Install MySQL Community Repo
-      yum: name=/tmp/mysql80-community-release-el7-5.noarch.rpm  state=present
+    #- name: Install MySQL Community Repo
+    #  yum: name=/tmp/mysql80-community-release-el7-5.noarch.rpm  state=present
 
-    - name: Install MySQL Server
-      yum: name=mysql-server state=present
+    #- name: Install MySQL Server
+     # yum: name=mysql-server state=present
 
     - name: Start the MySQL service
       become: true
@@ -26,11 +26,6 @@
         name: mysqld
         state: started
         enabled: true
-
-    - name: Install the MySQL repo.
-      get_url:
-        url: https://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
-        dest: /tmp
 
     - name: Creates directory /backup
       file:
