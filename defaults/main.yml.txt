@@ -1,0 +1,8 @@
+---
+  mysql_root_password: 
+  mysql_db: 
+  path: /home/centos/backup
+  access_key: 
+  secret_key: 
+  bucketname: 
+  intervals: 1
