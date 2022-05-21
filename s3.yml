@@ -1,0 +1,46 @@
+- hosts: localhost
+  become: true
+  gather_facts: true
+  vars:
+    vars: #local connection defaults to using the system python
+    ansible_python_interpreter: /usr/bin/python3
+  vars_files:
+    - ./defaults/main.yml
+
+  tasks:
+
+
+    - name: Ensure boto and boto3 modules are installed
+      pip:
+        name: "{{ item }}"
+      with_items:
+       - boto3
+       - botocore
+    - name: create a s3 bucket
+      become: true
+      aws_s3:
+       aws_access_key: "{{ access_key }}"
+       aws_secret_key: "{{ secret_key }}"
+       bucket: "{{ bucketname }}"
+       mode: create
+
+    - name: install python selinux library required by future ansible modules
+      become: true
+      yum:
+       name: libselinux-python3
+       state: present
+       update_cache: true
+
+
+    - name: "Cron job"
+      become: true
+      cron:
+        name: "Prune the items at /etc/dummy"
+        minute: "{{ intervals }}"
+        hour: "*"
+        day: "*"
+        weekday: "*"
+        month: "*"
+        job: "sh {{ path }}/a.sh"
+        state: present
+
