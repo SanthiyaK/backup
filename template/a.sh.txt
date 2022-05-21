@@ -1,0 +1,17 @@
+a="VDS_"$(date +%Y%m%d"_"%H%M%S)".sql.gz"
+echo $a
+da=$(date +%y%m%d)
+echo $da
+mkdir {{ path }}/"$(date +%y%m%d)"
+mysqldump -u root -p'{{ mysql_root_password }}' {{ mysql_db }} | gzip > {{ path }}/"$(date +%y%m%d)"/$a
+aws s3 sync {{ path }}/ s3://{{ bucketname}}/
+asd=$(ls {{ path }}/$da | grep $a)
+echo $asd
+if gzip -t /root/bak/"$da"/"$asd" ; then
+    echo 'file is ok'
+    #python3 /root/bak/a.py
+else
+    echo 'file is corrupt'
+    #python3 /root/bak/e.py
+fi
+rm -rf {{ path }}/"$(date +%y%m%d)"
