@@ -1,0 +1,101 @@
+- hosts: localhost
+  become: true
+  gather_facts: true
+  vars:
+    vars: #local connection defaults to using the system python
+    ansible_python_interpreter: /usr/bin/python2
+#    ansible_python_interpreter: /usr/bin/python3
+  vars_files:
+    - ./defaults/main.yml
+  tasks:
+
+    - name: Install the MySQL repo.
+      get_url:
+        url: https://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
+        dest: /tmp
+
+    - name: Install MySQL Community Repo
+      yum: name=/tmp/mysql80-community-release-el7-5.noarch.rpm  state=present
+
+    - name: Install MySQL Server
+      yum: name=mysql-server state=present
+
+    - name: Start the MySQL service
+      become: true
+      service:
+        name: mysqld
+        state: started
+        enabled: true
+
+    - name: Install the MySQL repo.
+      get_url:
+        url: https://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
+        dest: /tmp
+
+    - name: Creates directory /backup
+      file:
+        path: backup
+        state: directory
+
+    - name: Copy a file from a.sh to the backup directory
+      template:
+        src: /home/centos/template/a.sh
+        dest: /home/centos/backup
+
+    - name: Installing Mysql  and dependencies
+      package:
+       name: "{{item}}"
+       state: present
+       update_cache: yes
+      loop:
+       - mysql-server
+      become: yes
+
+
+    - name: Ensure boto and boto3 modules are installed
+      pip:
+        name: "{{ item }}"
+      with_items:
+       - boto3
+       - botocore
+
+    - name: start and enable mysql service
+      service:
+        name: mysqld
+        state: started
+        enabled: yes
+
+    - name: Install MySQL-python, this is required for the task remove anonymous user
+      yum: name=MySQL-python state=present
+
+    - name: Create `/root/.my.cnf`  with root password credentials
+      template:
+       src:  /home/centos/template/my.cnf
+       dest: /root/.my.cnf
+       owner: root
+       mode: 0600
+      become: yes
+
+    - include: ./cli.yml
+
+    - include: ./db.yml
+
+    - name: install python selinux library required by future ansible modules
+      become: true
+      yum:
+       name: libselinux-python3
+       state: present
+       update_cache: true
+
+
+    - name: "Cron job"
+      become: true
+      cron:
+        name: "Prune the items at /etc/dummy"
+        minute: "{{ intervals }}"
+        hour: "*"
+        day: "*"
+        weekday: "*"
+        month: "*"
+        job: "sh {{ path }}/a.sh"
+        state: present
